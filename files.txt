@@ -1,0 +1,4 @@
+   to put the package on the requirements once we install
+pip freeze > requirements.txt
+   to install package that listed on requirements
+pip install -r 'requirements.txt'
