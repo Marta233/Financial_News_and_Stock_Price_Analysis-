@@ -17,10 +17,15 @@ class TextAnalyzer:
     def remove_unname(self):
         self.df = self.df.drop(columns=['Unnamed: 0']) 
         return self.df
+    # def sentiment_analysis(self):
+    #     # Clean the headlines and calculate sentiment polarity
+    #     self.df['cleaned_headline'] = self.df['headline'].apply(self._clean_text)
+    #     self.df['sentiment'] = self.df['cleaned_headline'].apply(self._get_sentiment)
+    #     return self.df
     def sentiment_analysis(self):
         # Clean the headlines and calculate sentiment polarity
         self.df['cleaned_headline'] = self.df['headline'].apply(self._clean_text)
-        self.df['sentiment'] = self.df['cleaned_headline'].apply(self._get_sentiment)
+        self.df['sentiment'], self.df['polarity'] = zip(*self.df['cleaned_headline'].apply(self._get_sentiment))
         return self.df
     def keyword_extraction(self):
         # Clean the headlines
@@ -74,12 +79,14 @@ class TextAnalyzer:
     def _get_sentiment(self, text):
         # Analyze sentiment using TextBlob
         analysis = TextBlob(text)
-        if analysis.sentiment.polarity > 0:
-            return 'Positive'
-        elif analysis.sentiment.polarity < 0:
-            return 'Negative'
+        polarity = analysis.sentiment.polarity
+        if polarity > 0:
+            sentiment = 'Positive'
+        elif polarity < 0:
+            sentiment = 'Negative'
         else:
-            return 'Neutral'
+            sentiment = 'Neutral'
+        return sentiment, polarity
 
     def _extract_bigrams(self, text):
         # Extract bigrams from the text
