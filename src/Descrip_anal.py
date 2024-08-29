@@ -20,11 +20,12 @@ class Descriptives:
         publisher_count = self.df.groupby('publisher').size().reset_index(name ='publisher_count')
         publisher_count = publisher_count.sort_values(by = 'publisher_count', ascending = False)
         return publisher_count
+    def display_top_publishers(self):
+        top_publishers = self.count_healine_by_publisher().head(10)
+        return top_publishers
     def visualize_count_headline_by_publisher(self):
-        fig = px.bar(self.count_healine_by_publisher(), x='publisher', y='publisher_count')
+        fig = px.bar(self.display_top_publishers(), x='publisher', y='publisher_count')
         return fig
-    def format_date_time(self):
-        self.df['date'] = pd.to_datetime(self.df['date'], format='ISO8601')
     def format_publication_dates(self):
         # Convert the 'publication_date' column to datetime if it's not already
         self.df['date'] = pd.to_datetime(self.df['date'], format = 'ISO8601')

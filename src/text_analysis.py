@@ -87,9 +87,45 @@ class TextAnalyzer:
         return list(nltk.bigrams(words))
     # Assuming `df` has a 'stock symbol' column
     def count_publisher_per_symbole(self):
-        stock_publisher = pd.crosstab(self.df['stock'], self.df['publisher'])
-        plt.figure(figsize=(12,8))
-        sns.heatmap(stock_publisher, cmap='coolwarm', annot=True, fmt="d")
-        plt.title('Stock Symbols by Publisher')
+        publisher_counts = self.df.groupby(['stock', 'publisher']).size().reset_index()
+        publisher_counts.columns = ['stock', 'publisher', 'count']
+        return publisher_counts
+    def plot_publisher_counts(self, publisher_counts):
+        plt.figure(figsize=(10, 6))
+        sns.barplot(x='publisher', y='count', hue='stock', data=publisher_counts)
+        plt.xlabel('Publisher')
+        plt.ylabel('Count')
+        plt.title('Publisher Counts by Stock Symbol')
+        plt.xticks(rotation=45)
         plt.show()
+    def contains_email(self, publisher_name):
+        email_pattern = r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
+        return bool(re.search(email_pattern, publisher_name))
+    def filter_publishers_with_email(self):
+        # Apply the contains_email function to the 'publisher' column and filter the rows
+        self.df['has_email'] = self.df['publisher'].apply(self.contains_email)
+        filtered_data = self.df[self.df['has_email'] == True]
+        # Drop the temporary 'has_email' column
+        filtered_data = filtered_data.drop(columns=['has_email'])
+        filtered_data['domain'] = filtered_data['publisher'].apply(lambda x: x.split('@')[-1])
+        return filtered_data
+    def count_top_domains(self):
+        self.df = self.filter_publishers_with_email()
+        domain_counts = self.df['domain'].value_counts().reset_index()
+        domain_counts.columns = ['domain', 'count']
+        return domain_counts
+    def plot_email_have_publisher(self):
+        self.df = self.count_top_domains()
+        plt.figure(figsize=(10, 6))
+        sns.barplot(x='domain', y='count', data=self.df)
+        plt.xlabel('Domain')
+        plt.ylabel('Count')
+        plt.title('Email Publishers by Domain')
+        plt.xticks(rotation=45)
+        plt.show()
+    
+
+
+
+
 
