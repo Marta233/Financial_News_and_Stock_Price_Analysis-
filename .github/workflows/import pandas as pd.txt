@@ -1,0 +1,70 @@
+import pandas as pd
+import re
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+def contains_email(publisher_name):
+    email_pattern = r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
+    return bool(re.search(email_pattern, publisher_name))
+
+def analyze_articles(df, by='domain'):
+    # Filter DataFrame to include only rows where 'publisher' contains an email
+    df_with_emails = df[df['publisher'].apply(contains_email)]
+    
+    if by == 'domain':
+        # Extract domain from email
+        df_with_emails['domain'] = df_with_emails['publisher'].apply(lambda x: x.split('@')[-1])
+        # Count articles per domain
+        article_counts = df_with_emails.groupby('domain').size()
+    elif by == 'email':
+        # Count articles per email address
+        article_counts = df_with_emails['publisher'].value_counts()
+    else:
+        raise ValueError("Invalid value for 'by'. Use 'domain' or 'email'.")
+    
+    return article_counts
+
+def plot_article_counts(article_counts, title='Article Counts'):
+    plt.figure(figsize=(12, 6))
+    sns.barplot(x=article_counts.index, y=article_counts.values, palette='viridis')
+    plt.title(title)
+    plt.xlabel('Domain / Email')
+    plt.ylabel('Number of Articles')
+    plt.xticks(rotation=45, ha='right')
+    plt.tight_layout()
+    plt.show()
+
+# Example Usage
+data = {
+    'publisher': [
+        'john.doe@example.com', 
+        'Jane Doe', 
+        'info@company.org', 
+        'Company Name', 
+        'admin@website.com'
+    ],
+    'article': [
+        'Article 1', 
+        'Article 2', 
+        'Article 3', 
+        'Article 4', 
+        'Article 5'
+    ]
+}
+df = pd.DataFrame(data)
+
+# Analyze articles by domain
+domain_counts = analyze_articles(df, by='domain')
+print("Article counts per domain:")
+print(domain_counts)
+
+# Plot article counts by domain
+plot_article_counts(domain_counts, title='Article Counts by Domain')
+
+# Analyze articles by email
+email_counts = analyze_articles(df, by='email')
+print("\nArticle counts per email address:")
+print(email_counts)
+
+# Plot article counts by email
+plot_article_counts(email_counts, title='Article Counts by Email Address')
