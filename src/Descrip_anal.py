@@ -26,6 +26,10 @@ class Descriptives:
     def visualize_count_headline_by_publisher(self):
         fig = px.bar(self.display_top_publishers(), x='publisher', y='publisher_count')
         return fig
+    def format_publication_dates1(self):
+        # Convert the 'publication_date' column to datetime if it's not already
+        self.df['date'] = pd.to_datetime(self.df['date'], format = 'ISO8601')
+        return self.df
     def format_publication_dates(self):
         # Convert the 'publication_date' column to datetime if it's not already
         self.df['date'] = pd.to_datetime(self.df['date'], format = 'ISO8601')
