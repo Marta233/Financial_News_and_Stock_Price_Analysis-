@@ -8,26 +8,33 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import re
 
+# Download the stopwords from NLTK
 nltk.download('stopwords')
 stop_words = set(stopwords.words('english'))
 
 class TextAnalyzer:
     def __init__(self, df):
+        """
+        Initializes the TextAnalyzer class with a DataFrame.
+        
+        :param df: DataFrame containing the text data (e.g., headlines).
+        """
         self.df = df
+
     def remove_unname(self):
+        """Removes the unnamed column from the DataFrame."""
         self.df = self.df.drop(columns=['Unnamed: 0']) 
         return self.df
-    # def sentiment_analysis(self):
-    #     # Clean the headlines and calculate sentiment polarity
-    #     self.df['cleaned_headline'] = self.df['headline'].apply(self._clean_text)
-    #     self.df['sentiment'] = self.df['cleaned_headline'].apply(self._get_sentiment)
-    #     return self.df
+
     def sentiment_analysis(self):
-        # Clean the headlines and calculate sentiment polarity
+        """Cleans the headlines and calculates sentiment polarity."""
         self.df['cleaned_headline'] = self.df['headline'].apply(self._clean_text)
+        # Extract sentiment and polarity as separate columns
         self.df['sentiment'], self.df['polarity'] = zip(*self.df['cleaned_headline'].apply(self._get_sentiment))
         return self.df
+
     def keyword_extraction(self):
+        """Extracts keywords and common bigrams from the headlines."""
         # Clean the headlines
         self.df['cleaned_headline'] = self.df['headline'].apply(self._clean_text)
         
@@ -49,9 +56,9 @@ class TextAnalyzer:
         bigram_counts_df = pd.DataFrame(bigram_counts.most_common(10), columns=['Bigram', 'Count'])
         
         return keywords_df, bigram_counts_df
-    def plot_keyword_extraction(self, keywords_df, bigram_counts_df):
-        import matplotlib.pyplot as plt
 
+    def plot_keyword_extraction(self, keywords_df, bigram_counts_df):
+        """Plots the extracted keywords and bigrams."""
         # Plot top 10 keywords
         plt.figure(figsize=(10, 6))
         plt.bar(keywords_df['Keyword'], keywords_df['TF-IDF Score'])
@@ -69,15 +76,15 @@ class TextAnalyzer:
         plt.title('Top 10 Bigrams')
         plt.xticks(rotation=45)
         plt.show()
-    
+
     def _clean_text(self, text):
-        # Lowercase and remove non-alphanumeric characters
+        """Cleans the input text by lowering case and removing non-alphanumeric characters."""
         text = re.sub(r'\W+', ' ', text.lower())
         text = ' '.join([word for word in text.split() if word not in stop_words])
         return text
 
     def _get_sentiment(self, text):
-        # Analyze sentiment using TextBlob
+        """Analyzes sentiment using TextBlob and returns sentiment label and polarity."""
         analysis = TextBlob(text)
         polarity = analysis.sentiment.polarity
         if polarity > 0:
@@ -89,15 +96,18 @@ class TextAnalyzer:
         return sentiment, polarity
 
     def _extract_bigrams(self, text):
-        # Extract bigrams from the text
+        """Extracts bigrams from the cleaned text."""
         words = text.split()
         return list(nltk.bigrams(words))
-    # Assuming `df` has a 'stock symbol' column
+
     def count_publisher_per_symbole(self):
+        """Counts the number of headlines per stock symbol and publisher."""
         publisher_counts = self.df.groupby(['stock', 'publisher']).size().reset_index()
         publisher_counts.columns = ['stock', 'publisher', 'count']
         return publisher_counts
+
     def plot_publisher_counts(self, publisher_counts):
+        """Plots the counts of publishers by stock symbol."""
         plt.figure(figsize=(10, 6))
         sns.barplot(x='publisher', y='count', hue='stock', data=publisher_counts)
         plt.xlabel('Publisher')
@@ -105,23 +115,30 @@ class TextAnalyzer:
         plt.title('Publisher Counts by Stock Symbol')
         plt.xticks(rotation=45)
         plt.show()
+
     def contains_email(self, publisher_name):
+        """Checks if the publisher name contains an email address."""
         email_pattern = r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
         return bool(re.search(email_pattern, publisher_name))
+
     def filter_publishers_with_email(self):
-        # Apply the contains_email function to the 'publisher' column and filter the rows
+        """Filters publishers that have an email address and extracts the domain."""
         self.df['has_email'] = self.df['publisher'].apply(self.contains_email)
         filtered_data = self.df[self.df['has_email'] == True]
         # Drop the temporary 'has_email' column
         filtered_data = filtered_data.drop(columns=['has_email'])
         filtered_data['domain'] = filtered_data['publisher'].apply(lambda x: x.split('@')[-1])
         return filtered_data
+
     def count_top_domains(self):
+        """Counts the occurrence of each domain from publishers with email addresses."""
         self.df = self.filter_publishers_with_email()
         domain_counts = self.df['domain'].value_counts().reset_index()
         domain_counts.columns = ['domain', 'count']
         return domain_counts
+
     def plot_email_have_publisher(self):
+        """Plots the counts of publishers by their email domains."""
         self.df = self.count_top_domains()
         plt.figure(figsize=(10, 6))
         sns.barplot(x='domain', y='count', data=self.df)
@@ -130,9 +147,3 @@ class TextAnalyzer:
         plt.title('Email Publishers by Domain')
         plt.xticks(rotation=45)
         plt.show()
-    
-
-
-
-
-

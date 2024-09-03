@@ -4,9 +4,14 @@ from plotly.subplots import make_subplots
 import talib as ta
 import matplotlib.pyplot as plt
 
-
 class StockPrice:
     def __init__(self, file_paths, symbols):
+        """
+        Initializes the StockPrice class with file paths and stock symbols.
+        
+        :param file_paths: List of paths to CSV files containing stock data.
+        :param symbols: List of stock symbols corresponding to the data files.
+        """
         self.file_paths = file_paths
         self.symbols = symbols
         self.merged_data = self.merge_stock_data()
@@ -17,11 +22,11 @@ class StockPrice:
 
         for file_path, symbol in zip(self.file_paths, self.symbols):
             df = pd.read_csv(file_path)
-            df['Symbol'] = symbol
+            df['Symbol'] = symbol  # Add a column for the stock symbol
             df['Date'] = pd.to_datetime(df['Date'])  # Convert Date to datetime
             data_frames.append(df)
 
-        return pd.concat(data_frames, ignore_index=True)
+        return pd.concat(data_frames, ignore_index=True)  # Concatenate all data frames
 
     def calcu_info(self):
         """Returns information about the merged DataFrame."""
@@ -31,7 +36,9 @@ class StockPrice:
         """Plots subplots for Close, Open, High, and Low prices for each symbol."""
         for symbol in self.symbols:
             symbol_df = self.merged_data[self.merged_data['Symbol'] == symbol]
-            fig = make_subplots(rows=1, cols=4, subplot_titles=[f'{symbol} Close', f'{symbol} Open', f'{symbol} High', f'{symbol} Low'])
+            fig = make_subplots(rows=1, cols=4, subplot_titles=[
+                f'{symbol} Close', f'{symbol} Open', f'{symbol} High', f'{symbol} Low'
+            ])
 
             # Create traces for each price type
             fig.add_trace(go.Scatter(x=symbol_df['Date'], y=symbol_df['Close'], name=f'{symbol} Close'), row=1, col=1)
@@ -65,6 +72,7 @@ class StockPrice:
         
             symbol_df['MACD'] = macd
             symbol_df['MACD_Signal'] = macd_signal
+            
             # Update main DataFrame with calculated indicators
             for indicator in ['SMA', 'RSI', 'EMA', 'MACD', 'MACD_Signal']:
                 self.merged_data.loc[self.merged_data['Symbol'] == symbol, indicator] = symbol_df[indicator]
@@ -93,7 +101,7 @@ class StockPrice:
             ax1.set_ylabel('Price', color='blue')
             ax1.tick_params(axis='y', labelcolor='blue')
 
-            ax2 = ax1.twinx()
+            ax2 = ax1.twinx()  # Create a second y-axis for the indicator
             ax2.plot(symbol_data['Date'], symbol_data[indicator], label=indicator, color='orange')
             ax2.set_ylabel(indicator, color='orange')
             ax2.tick_params(axis='y', labelcolor='orange')
@@ -101,8 +109,9 @@ class StockPrice:
             ax1.legend(loc='upper left')
             ax2.legend(loc='upper right')
 
-        plt.tight_layout()
+        plt.tight_layout()  # Adjust layout to prevent overlap
         plt.show()
+
     def calculate_returns(self):
         """Calculates daily and cumulative returns."""
         self.merged_data['Daily_Return'] = self.merged_data.groupby('Symbol')['Close'].pct_change()
@@ -151,6 +160,7 @@ class StockPrice:
 
 
 if __name__ == "__main__":
+    # Define file paths for historical stock data
     file_paths = [
         '../data/yfinance_data/AAPL_historical_data.csv',
         '../data/yfinance_data/AMZN_historical_data.csv',
@@ -162,5 +172,6 @@ if __name__ == "__main__":
     ]
     symbols = ['AAPL', 'AMZN', 'GOOG', 'META', 'MSFT', 'NVDA', 'TSLA']
 
+    # Create an instance of StockPrice and plot subplots for stock data
     stock_price_analyzer = StockPrice(file_paths, symbols)
     stock_price_analyzer.plot_stock_subplots()
