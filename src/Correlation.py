@@ -70,3 +70,74 @@ class CorrelationAnalysis:
 
         # Show the plot
         fig.show()
+    def correl_selected_attributes(self):
+        # Select numerical columns
+        numerical_cols = self.merged_data.select_dtypes(include=['float64', 'int64']).columns
+
+        # Calculate the correlation matrix
+        corr_matrix = self.merged_data[numerical_cols].corr()
+
+        # Select the desired attributes
+        selected_attributes = ['polarity', 'Daily_Return', 'Cumulative_Return', 'Volatility', 'Close', 'SMA', 'RSI']
+
+        # Create a heatmap for the selected attributes
+        fig = go.Figure(data=go.Heatmap(
+            z=corr_matrix.loc[selected_attributes, selected_attributes].values,
+            x=selected_attributes,
+            y=selected_attributes,
+            colorscale='Viridis',
+            text=corr_matrix.loc[selected_attributes, selected_attributes].values,  # Display correlation values
+            texttemplate="%{text:.2f}",  # Format the text to 2 decimal places
+            hoverinfo='text'  # Show text on hover
+        ))
+
+        # Add labels and title
+        fig.update_layout(
+            title='Correlation Matrix for Selected Attributes',
+            xaxis_title='Attributes',
+            yaxis_title='Attributes'
+        )
+
+        # Show the plot
+        fig.show()
+    def corr_spec_att_for_each_symbol_attrib():
+        pass
+    def corr_spec_att_for_each_symbol(self):
+        # Select numerical columns
+        numerical_cols = self.merged_data.select_dtypes(include=['float64', 'int64']).columns
+
+        # Calculate the correlation matrix
+        corr_matrix = self.merged_data[numerical_cols].corr()
+
+        # Create a list of symbols
+        symbols = self.merged_data['Symbol'].unique()
+
+        # Iterate over each symbol
+        for symbol in symbols:
+            # Select the rows for the current symbol
+            symbol_data = self.merged_data[self.merged_data['Symbol'] == symbol]
+
+            # Select the desired attributes
+            selected_attributes = ['polarity', 'Daily_Return', 'Cumulative_Return', 'Close', 'SMA', 'RSI']
+            symbol_corr_matrix = symbol_data[selected_attributes].corr()
+
+            # Create a heatmap for the current symbol
+            fig = go.Figure(data=go.Heatmap(
+                z=symbol_corr_matrix.values,
+                x=selected_attributes,
+                y=selected_attributes,
+                colorscale='Viridis',
+                text=symbol_corr_matrix.values,  # Display correlation values
+                texttemplate="%{text:.2f}",  # Format the text to 2 decimal places
+                hoverinfo='text'  # Show text on hover
+            ))
+
+            # Add labels and title
+            fig.update_layout(
+                title=f'Correlation Matrix for {symbol}',
+                xaxis_title='Attributes',
+                yaxis_title='Attributes'
+            )
+
+            # Show the plot
+            fig.show()
