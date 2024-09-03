@@ -1,6 +1,7 @@
 import pandas as pd
 from textblob import TextBlob
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.decomposition import LatentDirichletAllocation
 import nltk
 from nltk.corpus import stopwords
 from collections import Counter
@@ -147,3 +148,23 @@ class TextAnalyzer:
         plt.title('Email Publishers by Domain')
         plt.xticks(rotation=45)
         plt.show()
+    def topic_modeling(self, n_topics=5):
+        """Performs topic modeling using LDA and returns the topics."""
+        # Ensure 'cleaned_headline' exists
+        self.df['cleaned_headline'] = self.df['headline'].apply(self._clean_text)
+        
+        # Create TF-IDF matrix
+        tfidf_vectorizer = TfidfVectorizer(stop_words='english')
+        tfidf_matrix = tfidf_vectorizer.fit_transform(self.df['cleaned_headline'])
+        
+        # Initialize and fit LDA
+        lda = LatentDirichletAllocation(n_components=n_topics, random_state=42)
+        lda.fit(tfidf_matrix)
+        
+        # Get the words associated with each topic
+        topic_words = {}
+        feature_names = tfidf_vectorizer.get_feature_names_out()
+        for topic_idx, topic in enumerate(lda.components_):
+            topic_words[topic_idx] = [feature_names[i] for i in topic.argsort()[:-6:-1]]
+        
+        return topic_words
